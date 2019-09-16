@@ -8,5 +8,7 @@ Tested on Photos version is 3.0.
    
 For now, it just checks for the Master version, but future releases will include versions as well. 
 
+Requires python 3, may work with python 2, but not tested.
+
 USAGE: 
    ./check_photos_library.py directory_of_your_library 
