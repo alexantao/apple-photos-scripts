@@ -43,41 +43,43 @@ def run(source, output_dir):
 #   2.3 - Cria diretório do ano/mes/dia
 #   2.4 - Move o arquivo para o diretório (verificar se já existe lá !)
 
-    if os.path.isdir(source):
-        source += '/*'
+    print("Source:", source)
 
-    file_list = glob.glob(source)
-    file_list.sort()                                    # lets just sort the list
-    #print("List to test:", file_list)
+    for dir_entry in source:
+        if os.path.isdir(dir_entry):    # item in list is directory
+            dir_entry = os.path.join(dir_entry, "*")
 
-    for original_photo in file_list:
-        print("----------------------\nTesting: ", original_photo)
-        photo_basename = os.path.basename(original_photo)
-        tags = get_exif_data(original_photo)
-        if len(tags) > 0:
-            try: # first, separate year, month and date from EXIT
-                original_date_str = tags['DateTimeOriginal']                                        # get original EXIF date
-                date_of_photo = datetime.datetime.strptime(original_date_str, '%Y:%m:%d %H:%M:%S')  # transform to date obj
-                photo_year = date_of_photo.year                                                     # separate year
-                photo_month = date_of_photo.month                                                   # separate month
-                photo_day = date_of_photo.day                                                       # separate day
+        file_list = glob.glob(dir_entry)       # generate a list of the source
+        file_list.sort()  # lets just sort the list
 
-                # lets create directory struct as ordered
-                final_path = os.path.join(output_dir, str(photo_year))
-                if args.day or args.month:       # create full structure
-                    final_path = os.path.join(final_path, str(photo_month))
-                if args.day:
-                    final_path = os.path.join(final_path, str(photo_day))
+        for original_photo in file_list:
+            print("----------------------\nTesting: ", original_photo)
+            photo_basename = os.path.basename(original_photo)
+            tags = get_exif_data(original_photo)
+            if len(tags) > 0:
+                try: # first, separate year, month and date from EXIT
+                    original_date_str = tags['DateTimeOriginal']                                        # get original EXIF date
+                    date_of_photo = datetime.datetime.strptime(original_date_str, '%Y:%m:%d %H:%M:%S')  # transform to date obj
+                    photo_year = date_of_photo.year                                                     # separate year
+                    photo_month = date_of_photo.month                                                   # separate month
+                    photo_day = date_of_photo.day                                                       # separate day
 
-                destination_file = os.path.join(final_path, photo_basename)             # this is the final pathname
-                # create Path
-                print("Moving : ", photo_basename, " -> ", destination_file)
-                os.makedirs(os.path.dirname(destination_file), exist_ok=True)           # Directory does nor exist, create
-                #move(original_photo, destination_file)
+                    # lets create directory struct as ordered
+                    final_path = os.path.join(output_dir, str(photo_year))
+                    if args.day or args.month:       # create full structure
+                        final_path = os.path.join(final_path, str(photo_month))
+                    if args.day:
+                        final_path = os.path.join(final_path, str(photo_day))
 
-            except:  #photos whitout EXIF information or DateTimeOriginal are ignored
-                print('File: "', original_photo, '" does not have Date/Time information.')
-                continue
+                    destination_file = os.path.join(final_path, photo_basename)             # this is the final pathname
+                    # create Path
+                    print("Moving : ", photo_basename, " -> ", destination_file)
+                    os.makedirs(os.path.dirname(destination_file), exist_ok=True)           # Directory does nor exist, create
+                    #move(original_photo, destination_file)
+
+                except:  #photos whitout EXIF information or DateTimeOriginal are ignored
+                    print('File: "', original_photo, '" does not have Date/Time information.')
+                    continue
 
 
 
@@ -90,7 +92,7 @@ if __name__ == '__main__':
     parser.add_argument('-m', '--month', action='store_true', default=False, help='Separate Photos by month, inside year.')
     parser.add_argument('-d', '--day', action='store_true', default=False, help='Separate Photos by day, inside month.')
 
-    parser.add_argument('source', help='Source files pattern or dir of the photos that will be processed')
+    parser.add_argument('source', nargs='*', help='Source files pattern or dir of the photos that will be processed')
     parser.add_argument('output_dir', help='Destination dir of the photos')
     args = parser.parse_args()
 
