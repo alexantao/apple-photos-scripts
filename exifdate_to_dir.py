@@ -60,9 +60,9 @@ def run(source, output_dir):
 # Usage: ./exifdate_to_dir.py [options] <source> <output_dir>
 if __name__ == '__main__':
     parser = ArgumentParser()
-    parser.add_argument('-v', '--verbose', action='store_true', default=False, help='Prints all info about processing')
-    parser.add_argument('-y', '--year', action='store_true', default=True,
-                        help='Separate Photos by year (default True).')
+    # parser.add_argument('-v', '--verbose', action='store_true', default=False, help='Prints all info about processing')
+    # parser.add_argument('-y', '--year', action='store_true', default=True,
+    #                   help='Separate Photos by year (default True).')
     parser.add_argument('-m', '--month', action='store_true', default=False,
                         help='Separate Photos by month, inside year.')
     parser.add_argument('-d', '--day', action='store_true', default=False, help='Separate Photos by day, inside month.')
