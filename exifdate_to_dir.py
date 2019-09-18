@@ -10,6 +10,10 @@ import exiftool
 
 # the field to extract from photo files
 EXIF_DATE_FIELD = "DateTimeOriginal"
+CRED = '\033[31m'
+CGREEN = '\033[32m'
+CEND = '\033[0m'
+
 
 def run(source, output_dir):
     for dir_entry in source:
@@ -20,7 +24,7 @@ def run(source, output_dir):
         file_list.sort()  # lets just sort the list
 
         for original_photo in file_list:
-            print("----------------------\nTesting: ", original_photo)
+            # print("----------------------\nTesting: ", original_photo)
             photo_basename = os.path.basename(original_photo)
 
             try:
@@ -45,11 +49,11 @@ def run(source, output_dir):
 
                     destination_file = os.path.join(final_path, photo_basename)  # this is the final pathname
                     # create Path
-                    print("Moving : ", photo_basename, " -> ", destination_file)
+                    print(CGREEN, "Moving : ", CEND, photo_basename, " -> ", destination_file)
                     os.makedirs(os.path.dirname(destination_file), exist_ok=True)  # Directory does nor exist, create
                     move(original_photo, destination_file)
             except:  # photos whitout EXIF information or DateTimeOriginal are ignored
-                print('File: "', original_photo, '" does not have Date/Time information.')
+                print('File: "', original_photo, '" does not have Date/Time information. ', CRED, '(IGNORED)', CEND)
                 continue
 
 
