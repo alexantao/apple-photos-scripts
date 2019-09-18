@@ -104,9 +104,13 @@ if __name__ == '__main__':
     parser.add_argument('-d', '--day', action='store_true', default=False, help='Separate Photos by day, inside month.')
     parser.add_argument('-g', '--guess', action='store_true', default=False, help='Activate guessing mode.')
 
-    parser.add_argument('source', nargs='*', help='Source files pattern or dir of the photos that will be processed')
-    parser.add_argument('output_dir', nargs='?', default='./',
+    parser.add_argument('-s', '--source', nargs='+',
+                        help='Source files pattern or dir of the photos that will be processed')
+    parser.add_argument('-o', '--output_dir', nargs='?', default='./',
                         help='Destination dir of the photos (will use current directory, if omitted)')
     args = parser.parse_args()
+
+    if args.output_dir is None:
+        args.output_dir = './'
 
     run(args.source, args.output_dir, args.guess)

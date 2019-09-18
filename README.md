@@ -25,9 +25,12 @@ Requires python 3 and PyExifTool, may work with python 2, but not tested.
 
 **OPTIONS:**
 
-    -m, --month: create MONTH directories. Result will be YEAR/MONTH
-    -d, --day: create DAY directories. Result will be YEAR/MONTH/DAY
-    -g, --guess: try to guess the date. Method sequence:
+    -s, --source: list of source paths and files to check
+    -o, --output_dir: where the directory structure will be created.
+                      OPTIONAL. Defaults to './' 
+    -m, --month: create MONTH directories. Result will be YEAR/MONTH . OPTIONAL
+    -d, --day: create DAY directories. Result will be YEAR/MONTH/DAY . OPTIONAL
+    -g, --guess: try to guess the date. Method sequence:             . OPTIONAL
                    1) EXIF DateTimeOriginal
                    2) EXIF DateTime
                    3) EXIF ModifyDate
@@ -35,7 +38,7 @@ Requires python 3 and PyExifTool, may work with python 2, but not tested.
 
 **USAGE:**
   
-     ./exifdate_to_dir.py [options] <path_or_files> [output_dir]
+     ./exifdate_to_dir.py [options] -s <path_or_files> -o [output_dir]
    
    - path_or_files: if a Path, will scan all files inside and try to extract the EXIF data from then. those whose EXIF data could not be extract will be IGNORED
    - output_dir: where the files will be MOVED to. If ignored, defaults to current dir, './'
