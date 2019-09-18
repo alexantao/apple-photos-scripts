@@ -4,6 +4,7 @@ import datetime
 import glob
 import os
 from argparse import ArgumentParser
+from shutil import move
 
 import exiftool
 
@@ -33,18 +34,17 @@ def str_to_date(date_string):
 #     Tries to guess the date of the file using some methods (if guess is TRUE,
 #  else only DateTimeOriginal is used)
 def guess_date(file, metadata, guess):
-    # print("Guessing Date/Time:", file, guess)
-    # Method 1: EXIF Field DateTimeOriginal
 
+    # Method 1: EXIF Field DateTimeOriginal
     result = str_to_date(metadata.get_tag(EXIF_DATE1_FIELD, file))
 
     # Method 2: Field DateTime
     if result is None and guess:
-        original_date_str = str_to_date(metadata.get_tag(EXIF_DATE2_FIELD, file))
+        result = str_to_date(metadata.get_tag(EXIF_DATE2_FIELD, file))
 
     # Method 3: Field FileModifiedDate
     if result is None and guess:
-        original_date_str = str_to_date(metadata.get_tag(EXIF_DATE3_FIELD, file))
+        result = str_to_date(metadata.get_tag(EXIF_DATE3_FIELD, file))
 
     # Method 4: SO File Date and Time Created
     if result is None:
@@ -90,7 +90,7 @@ def run(source, output_dir, guess):
                 # create Path
                 print(CGREEN, "Moving : ", CEND, photo_basename, " -> ", destination_file)
                 os.makedirs(os.path.dirname(destination_file), exist_ok=True)  # Directory does nor exist, create
-                # move(original_photo, destination_file)
+                move(original_photo, destination_file)
             else:
                 print('File: "', original_photo, '" does not have Date/Time information. ', CRED, '(IGNORED)', CEND)
                 continue
