@@ -27,6 +27,11 @@ Requires python 3 and PyExifTool, may work with python 2, but not tested.
 
     -m, --month: create MONTH directories. Result will be YEAR/MONTH
     -d, --day: create DAY directories. Result will be YEAR/MONTH/DAY
+    -g, --guess: try to guess the date. Method sequence:
+                   1) EXIF DateTimeOriginal
+                   2) EXIF DateTime
+                   3) EXIF ModifyDate
+                   4) Date of creation of file from SO 
 
 **USAGE:**
   
