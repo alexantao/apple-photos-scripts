@@ -1,7 +1,7 @@
 This repository contains some scripts useful to manipulate Apple Photos Library or work with photos files.
 I used then to migrate my 800gb, 101.000 photos library from Apple Photos to digikam.
 
-# photos-check
+# check_photos_library
 
 Not once, but several times, I tried to export a file in my Mac Photos App and got an error that the photo could not be copied. Later I discovered that the phisical file was missing, althrough it is referenced in Photos database, and even can be seen inside the App (possibly a low res version of it). 
 
