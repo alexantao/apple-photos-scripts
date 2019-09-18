@@ -4,7 +4,6 @@ import datetime
 import glob
 import os
 from argparse import ArgumentParser
-from shutil import move
 
 import exiftool
 
@@ -19,6 +18,17 @@ CGREEN = '\033[32m'
 CEND = '\033[0m'
 
 
+# Function to transform a string to Date
+# in case the string is malformed, return None
+def str_to_date(date_string):
+    try:
+        result = datetime.datetime.strptime(date_string, '%Y:%m:%d %H:%M:%S')
+    except:
+        result = None
+
+    return result
+
+
 # -------------------------------------------------------------------------------------------
 #     Tries to guess the date of the file using some methods (if guess is TRUE,
 #  else only DateTimeOriginal is used)
@@ -26,24 +36,25 @@ CEND = '\033[0m'
 def guess_date(file, metadata, guess):
     # print("Guessing Date/Time:", file, guess)
     # Method 1: EXIF Field DateTimeOriginal
-    original_date_str = metadata.get_tag(EXIF_DATE1_FIELD, file)
+
+    result = str_to_date(metadata.get_tag(EXIF_DATE1_FIELD, file))
 
     # Method 2: Field DateTime
-    if original_date_str is None and guess:
-        original_date_str = metadata.get_tag(EXIF_DATE2_FIELD, file)
+    if result is None and guess:
+        original_date_str = str_to_date(metadata.get_tag(EXIF_DATE2_FIELD, file))
 
     # Method 3: Field FileModifiedDate
-    if original_date_str is None and guess:
-        original_date_str = metadata.get_tag(EXIF_DATE3_FIELD, file)
+    if result is None and guess:
+        original_date_str = str_to_date(metadata.get_tag(EXIF_DATE3_FIELD, file))
 
-    # Method 4: File Date and Time Created
-    if original_date_str is None:
+    # Method 4: SO File Date and Time Created
+    if result is None:
         if guess:
             return datetime.datetime.fromtimestamp(os.stat(file).st_ctime)
         else:
             return None
 
-    return datetime.datetime.strptime(original_date_str, '%Y:%m:%d %H:%M:%S')
+    return result
 
 
 # -------------------------------------------------------------------------------------------
@@ -80,7 +91,7 @@ def run(source, output_dir, guess):
                 # create Path
                 print(CGREEN, "Moving : ", CEND, photo_basename, " -> ", destination_file)
                 os.makedirs(os.path.dirname(destination_file), exist_ok=True)  # Directory does nor exist, create
-                move(original_photo, destination_file)
+                # move(original_photo, destination_file)
             else:
                 print('File: "', original_photo, '" does not have Date/Time information. ', CRED, '(IGNORED)', CEND)
                 continue
