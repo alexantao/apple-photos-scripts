@@ -32,7 +32,6 @@ def str_to_date(date_string):
 # -------------------------------------------------------------------------------------------
 #     Tries to guess the date of the file using some methods (if guess is TRUE,
 #  else only DateTimeOriginal is used)
-#         original_date_str = metadata_tool.get_tag(EXIF_DATE1_FIELD, original_photo)
 def guess_date(file, metadata, guess):
     # print("Guessing Date/Time:", file, guess)
     # Method 1: EXIF Field DateTimeOriginal
