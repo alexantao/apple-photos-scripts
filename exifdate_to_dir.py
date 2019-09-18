@@ -1,15 +1,15 @@
 #! /usr/bin/env python3
 
-import glob
-import exiftool
-import os
 import datetime
+import glob
+import os
 from argparse import ArgumentParser
 from shutil import move
 
+import exiftool
+
 # the field to extract from photo files
 EXIF_DATE_FIELD = "DateTimeOriginal"
-
 
 def run(source, output_dir):
     for dir_entry in source:
@@ -64,7 +64,8 @@ if __name__ == '__main__':
     parser.add_argument('-d', '--day', action='store_true', default=False, help='Separate Photos by day, inside month.')
 
     parser.add_argument('source', nargs='*', help='Source files pattern or dir of the photos that will be processed')
-    parser.add_argument('output_dir', help='Destination dir of the photos')
+    parser.add_argument('output_dir', nargs='?', default='./',
+                        help='Destination dir of the photos (will use current directory, if omitted)')
     args = parser.parse_args()
 
     run(args.source, args.output_dir)
