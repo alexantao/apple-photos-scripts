@@ -4,8 +4,8 @@ import datetime
 import glob
 import os
 from argparse import ArgumentParser
-from shutil import move
 
+import datefinder
 import exiftool
 
 # the field to extract from photo files
@@ -45,6 +45,11 @@ def guess_date(file, metadata, guess):
     # Method 3: Field FileModifiedDate
     if result is None and guess:
         result = str_to_date(metadata.get_tag(EXIF_DATE3_FIELD, file))
+
+    # Method 5: DateFinder. Try to discover from filename patterns
+    search = datefinder.find_dates(file)
+    for date_result in search:
+        print("File: ", file, " Data Encontrada: ", date_result)
 
     # Method 4: SO File Date and Time Created
     if result is None:
@@ -90,7 +95,7 @@ def run(source, output_dir, guess):
                 # create Path
                 print(CGREEN, "Moving : ", CEND, photo_basename, " -> ", destination_file)
                 os.makedirs(os.path.dirname(destination_file), exist_ok=True)  # Directory does nor exist, create
-                move(original_photo, destination_file)
+                # move(original_photo, destination_file)
             else:
                 print('File: "', original_photo, '" does not have Date/Time information. ', CRED, '(IGNORED)', CEND)
                 continue
