@@ -20,6 +20,13 @@ USAGE:
   $ ./check_photos_library.py directory_of_your_library 
 ```
 
+**OPTIONS:**
+
+    -ev          : Exclude version check of files. Only MASTER files are checked (not functional)
+    -v, --verbose: print a lof of messages on terminal.
+    -p, --path   : create a CSV file with UUDIs and path. (useful on restore script).
+
+
 # Organize by Date
 
 Reads EXIF data from files and move then to a directory structure like YEAR/MONTH/DAY.

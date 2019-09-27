@@ -29,7 +29,7 @@ def vprint(verbose, message):
 
 
 #  Main Function
-def check(verbose, exclude_versions, lib_dir, output_file):
+def check(verbose, with_path, exclude_versions, lib_dir, output_file):
     db_path = os.path.join(lib_dir, 'database')
     main_db_path = os.path.join(db_path, 'photos.db')
     proxy_db_path = os.path.join(db_path, 'photos.db')
@@ -67,7 +67,11 @@ def check(verbose, exclude_versions, lib_dir, output_file):
             if not os.path.exists(path):
                 vprint(verbose, "Check Master" + ntpath.normpath(masteritem['imagePath']) + CRED + " NOK " + CEND)
                 # print("Master :\t UUID=", uuid, "\tArquivo: ", path, file=log_file)
-                print(uuid, file=output)
+
+                if with_path:
+                    print(uuid + ',"' + path + '"', file=output)
+                else:
+                    print(uuid, file=output)
             else:
                 vprint(verbose, "Check Master " + ntpath.normpath(masteritem['imagePath']) + CGREEN + " OK " + CEND)
 
@@ -111,9 +115,10 @@ if __name__ == '__main__':
     parser.add_argument('--ev', action="store_true", default=True,
                         help='Exclude check of Version Files (Edited Photos). Scan only Master Files')
     parser.add_argument('-v', '--verbose', action="store_true", default=False, help='Print All Check Files on Screen')
+    parser.add_argument('-p', '--path', action="store_true", default=False, help='Store UUIDs with Path')
     parser.add_argument('library_dir', help='Path of Photos App Library to check')
     parser.add_argument('output_file', help='Output file with UUIDs found.')
     args = parser.parse_args()
 
     print("Checking Library: ", args.library_dir)
-    check(args.verbose, True, args.library_dir, args.output_file)
+    check(args.verbose, args.path, True, args.library_dir, args.output_file)
