@@ -103,7 +103,7 @@ def run(source, output_dir, guess):
                 continue
 
 
-# Usage: ./exifdate_to_dir.py [options] <source> <output_dir>
+# Usage: ./organize_by_date.py [options] <source> <output_dir>
 if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('-m', '--month', action='store_true', default=False,
