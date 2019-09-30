@@ -29,55 +29,64 @@ def vprint(verbose, message):
 
 
 #  Main Function
-def check(verbose, with_path, exclude_versions, lib_dir, output_file):
+def check(verbose, exclude_versions, lib_dir, output_file):
     db_path = os.path.join(lib_dir, 'database')
-    main_db_path = os.path.join(db_path, 'photos.db')
-    proxy_db_path = os.path.join(db_path, 'photos.db')
+    photos_db_path = os.path.join(db_path, 'photos.db')
 
     try:
-        main_db = sqlite3.connect(main_db_path)
-        main_db.row_factory = sqlite3.Row
-        proxy_db = sqlite3.connect(proxy_db_path)
-        proxy_db.row_factory = sqlite3.Row
+        photos_db = sqlite3.connect(photos_db_path)
+        photos_db.row_factory = sqlite3.Row
     except sqlite3.Error as erro:
-        print("Problem connecting to Database: ", main_db_path)
+        print("Problem connecting to Database: ", photos_db_path)
         print(" Error: ", erro)
         sys.exit(1)
 
     try:
-        dbcursor = main_db.cursor()
-        dbcursor.execute('SELECT COUNT(*) from RKMaster')
-        (number_of_rows,) = dbcursor.fetchone()
-        dbcursor.execute('SELECT * FROM RKMaster')
+        version_cursor = photos_db.cursor()
+        master_cursor = photos_db.cursor()
+        version_cursor.execute('SELECT COUNT(*) from RKVersion')
+        (number_of_rows,) = version_cursor.fetchone()
+        version_cursor.execute('SELECT * FROM RKVersion')
     except sqlite3.Error as erro:
-        print("Problem on Database: ", main_db_path)
+        print("Problem on Database: ", photos_db_path)
         print(" Error: ", erro)
         sys.exit(1)
 
     vprint(verbose, "Number of items to check: " + str(number_of_rows) + "\n")
     bar = progressbar.ProgressBar(maxval=number_of_rows)
 
-    # Processing each item of DB
+    # Processing each item of DB VERSION
     with open('%s' % output_file, 'w') as output:  # Open output File
-        for masteritem in bar(iter(dbcursor.fetchone, None)):
-            uuid = masteritem['uuid']
-            path = os.path.join(lib_dir, 'Masters', masteritem['imagePath'])
+        print("versionuuid,masterUuid,imagePath", file=output)
+
+        for version_item in bar(iter(version_cursor.fetchone, None)):
+            version_uuid = version_item['uuid']
+            master_uuid = version_item['masterUuid']
+
+            try:
+                query = 'SELECT imagePath FROM RKMaster WHERE uuid="' +  master_uuid +'"'
+                master_cursor.execute(query)
+                imagePath = master_cursor.fetchone()[0]
+
+            except sqlite3.Error as erro:
+                print("Problem on Master Select: ", photos_db_path)
+                print(" Error: ", erro)
+                sys.exit(1)
+
+            # get path from master
+            fullPath = os.path.join(lib_dir, 'Masters', imagePath)
 
             # Check if Master Version of the file exists.
-            if not os.path.exists(path):
-                vprint(verbose, "Check Master" + ntpath.normpath(masteritem['imagePath']) + CRED + " NOK " + CEND)
+            if not os.path.exists(fullPath):
+                vprint(verbose, "Image " + ntpath.normpath(imagePath) + CRED + " NOK " + CEND)
                 # print("Master :\t UUID=", uuid, "\tArquivo: ", path, file=log_file)
-
-                if with_path:
-                    print(uuid + ',"' + path + '"', file=output)
-                else:
-                    print(uuid, file=output)
+                print(version_uuid + "," + master_uuid + "," + imagePath, file=output)
             else:
-                vprint(verbose, "Check Master " + ntpath.normpath(masteritem['imagePath']) + CGREEN + " OK " + CEND)
+                vprint(verbose, "Image " + ntpath.normpath(imagePath) + CGREEN + " OK " + CEND)
 
             # if not exclude_versions:
             #     # Let's Verify if there are versions left and if they exists
-            #     version_cursor = main_db.cursor()
+            #     version_cursor = master_db.cursor()
             #     version_cursor.execute('SELECT * FROM RKVersion WHERE masterUuid=?', [uuid])
             #
             #     edited_paths = []
@@ -92,7 +101,7 @@ def check(verbose, with_path, exclude_versions, lib_dir, output_file):
             #         if version['adjustmentUuid'] != 'UNADJUSTEDNONRAW':
             #             version_uuid = version['adjustmentUuid']
             #
-            #             adjust_cursor = proxy_db.cursor()
+            #             adjust_cursor = version_db.cursor()
             #             adjust_cursor.execute('SELECT * FROM RKModelResource WHERE resourceTag=?',
             #                                   [version['adjustmentUuid']])
             #             for resource in iter(adjust_cursor.fetchone, None):
@@ -105,8 +114,7 @@ def check(verbose, with_path, exclude_versions, lib_dir, output_file):
             #                         vprint(verbose, "     Check Version : " + full_file + CRED + " NOK " + CEND)
             #                         print(version_uuid, file=output)
 
-        main_db.close()
-        proxy_db.close()
+        photos_db.close()
 
 
 if __name__ == '__main__':
@@ -115,10 +123,9 @@ if __name__ == '__main__':
     parser.add_argument('--ev', action="store_true", default=True,
                         help='Exclude check of Version Files (Edited Photos). Scan only Master Files')
     parser.add_argument('-v', '--verbose', action="store_true", default=False, help='Print All Check Files on Screen')
-    parser.add_argument('-p', '--path', action="store_true", default=False, help='Store UUIDs with Path')
     parser.add_argument('library_dir', help='Path of Photos App Library to check')
     parser.add_argument('output_file', help='Output file with UUIDs found.')
     args = parser.parse_args()
 
     print("Checking Library: ", args.library_dir)
-    check(args.verbose, args.path, True, args.library_dir, args.output_file)
+    check(args.verbose, True, args.library_dir, args.output_file)
