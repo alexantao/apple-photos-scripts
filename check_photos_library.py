@@ -74,45 +74,15 @@ def check(verbose, exclude_versions, lib_dir, output_file):
                 sys.exit(1)
 
             # get path from master
-            fullPath = os.path.join(lib_dir, 'Masters', imagePath)
+            full_path = os.path.join(lib_dir, 'Masters', imagePath)
 
             # Check if Master Version of the file exists.
-            if not os.path.exists(fullPath):
+            if not os.path.exists(full_path):
                 vprint(verbose, "Image " + ntpath.normpath(imagePath) + CRED + " NOK " + CEND)
                 # print("Master :\t UUID=", uuid, "\tArquivo: ", path, file=log_file)
                 print(version_uuid + "," + master_uuid + "," + imagePath, file=output)
             else:
                 vprint(verbose, "Image " + ntpath.normpath(imagePath) + CGREEN + " OK " + CEND)
-
-            # if not exclude_versions:
-            #     # Let's Verify if there are versions left and if they exists
-            #     version_cursor = master_db.cursor()
-            #     version_cursor.execute('SELECT * FROM RKVersion WHERE masterUuid=?', [uuid])
-            #
-            #     edited_paths = []
-            #     unadjusted_count = 0
-            #
-            #     # Finding edited photo Verions
-            #     for version in iter(version_cursor.fetchone, None):
-            #         edited_path = []
-            #
-            #         # ---- PHASE 1  ------
-            #         # Find out if there are edited versions of the photo
-            #         if version['adjustmentUuid'] != 'UNADJUSTEDNONRAW':
-            #             version_uuid = version['adjustmentUuid']
-            #
-            #             adjust_cursor = version_db.cursor()
-            #             adjust_cursor.execute('SELECT * FROM RKModelResource WHERE resourceTag=?',
-            #                                   [version['adjustmentUuid']])
-            #             for resource in iter(adjust_cursor.fetchone, None):
-            #                 if resource['attachedModelType'] == 2 and resource['resourceType'] == 4:
-            #                     res_filename = version['filename']
-            #
-            #                     # Check if Master Version of the file exists.
-            #                     full_file = ntpath.join(ntpath.dirname(masteritem['imagePath']), res_filename)
-            #                     if res_filename != None and not os.path.exists(full_file):
-            #                         vprint(verbose, "     Check Version : " + full_file + CRED + " NOK " + CEND)
-            #                         print(version_uuid, file=output)
 
         photos_db.close()
 

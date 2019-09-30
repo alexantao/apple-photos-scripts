@@ -3,6 +3,7 @@
 import datetime
 import glob
 import os
+import shutil
 from argparse import ArgumentParser
 
 import dateutil
@@ -97,7 +98,7 @@ def run(source, output_dir, guess):
                 # create Path
                 # print(CGREEN, "Moving : ", CEND, photo_basename, " -> ", destination_file)
                 os.makedirs(os.path.dirname(destination_file), exist_ok=True)  # Directory does nor exist, create
-                # move(original_photo, destination_file)
+                shutil.move(original_photo, destination_file)
             else:
                 # print('File: "', original_photo, '" does not have Date/Time information. ', CRED, '(IGNORED)', CEND)
                 continue
