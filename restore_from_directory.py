@@ -10,7 +10,7 @@
 #  missing on Photos Library.
 #
 
-import os
+import pathlib
 import shutil
 import sys
 from argparse import ArgumentParser
@@ -30,28 +30,29 @@ def vprint(message):
 
 
 def copyback(csv_path, photos_dir, library_dir):
-    csv_path = os.path.abspath(csv_path)
-    photos_dir = os.path.abspath(photos_dir)
-    library_dir = os.path.abspath(library_dir)
+    csv_path = pathlib.Path(csv_path).resolve()
+    photos_dir = pathlib.Path(photos_dir).resolve()
+    library_dir = pathlib.Path(library_dir).resolve()
 
-    if not os.path.isfile(csv_path):  # test exsitance
+    if not csv_path.is_file():  # test exsitance
         print(" ERROR: CSV File not found.")
         sys.exit(1)
 
-    if not os.path.isdir(photos_dir):
+    if not photos_dir.is_dir():
         print(" ERROR: Photos directory not found or not DIR.")
         sys.exit(1)
 
-    if not os.path.isdir(library_dir):
+    if not library_dir.is_dir():
         print(" ERROR: Library directory not found or not DIR.")
         sys.exit(1)
 
     # Let's process the CSV File
-    with open('%s' % csv_path, 'r') as csv:  # Open output File
+    with csv_path.open(mode='r') as csv:
 
         # create directory to copy files processed
-        restored_full_path = os.path.join(photos_dir, copied_dir)
-        os.makedirs(restored_full_path, exist_ok=True)
+        restored_full_path = photos_dir / copied_dir
+        restored_full_path.mkdir(parents=True, exist_ok=True)
+
 
         num_restored = 0
         num_notfound = 0
@@ -59,25 +60,27 @@ def copyback(csv_path, photos_dir, library_dir):
 
         for linha in csv:
             linha = linha.rstrip("\n")
-            missing_photo_csvpath = linha.split(",")[2]  # get the path of library from CSV
+            missing_photo_csvpath = pathlib.Path(linha.split(",")[2])  # get the path of library from CSV
 
-            missing_photo_target = os.path.join(library_dir, "Masters", missing_photo_csvpath)
-            (missing_photo_libpath, missing_photo_filename) = os.path.split(
-                missing_photo_target)  # path on library and filename
-            missing_photo_source = os.path.join(photos_dir, missing_photo_filename)  # path where we will get the file
+            missing_photo_target = library_dir / "Masters" / missing_photo_csvpath
+            missing_photo_libpath = missing_photo_target.parent
+            missing_photo_filename = missing_photo_target.name
 
-            if not os.path.isdir(missing_photo_libpath):
-                vprint(
-                    CORANGE + "WARNING: " + CEND + " Path on Library missing for file. Strange...\n\t" + missing_photo_libpath)
+            missing_photo_source = photos_dir / missing_photo_filename
+
+            # if not os.path.isdir(missing_photo_libpath):
+            if not missing_photo_libpath.is_dir():
+                vprint("{0}WARNING: {1} Path on Library missing for file. Strange...\n\t{2}".format(CORANGE, CEND,
+                                                                                                    missing_photo_libpath))
                 num_ignored += 1
             else:
-                if os.path.isfile(missing_photo_source):  # check if the source exists in photos_dir
+                if missing_photo_source.is_file():  # check if the source exists in photos_dir
                     shutil.copyfile(missing_photo_source, missing_photo_target)
                     shutil.move(missing_photo_source, restored_full_path)
-                    vprint(CGREEN + "COPIED: " + CEND + missing_photo_source)
+                    vprint("{0}COPIED:{1} {2]".format(CGREEN, CEND, missing_photo_source))
                     num_restored += 1
                 else:
-                    vprint(CRED + "NOT FOUND: " + CEND + missing_photo_source)
+                    vprint("{0}NOT FOUND:{1} {2}".format(CRED, CEND, missing_photo_source))
                     num_notfound += 1
 
         vprint("--------")
@@ -87,7 +90,7 @@ def copyback(csv_path, photos_dir, library_dir):
         vprint(str(num_ignored) + " files ignored.")
 
 
-# Usage ./restore_from_directory.py <source_img_dir> <csv_file> <library_dir>
+# Usage ./restore_from_directory.py  <csv_file> <source_img_dir> <library_dir>
 if __name__ == '__main__':
     # Options parsed from command line
     parser = ArgumentParser()

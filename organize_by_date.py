@@ -1,12 +1,10 @@
 #! /usr/bin/env python3
 
 import datetime
-import glob
-import os
+import pathlib
 import shutil
 from argparse import ArgumentParser
 
-import dateutil
 import exiftool
 
 # the field to extract from photo files
@@ -35,20 +33,24 @@ def str_to_date(date_string):
 #     Tries to guess the date of the file using some methods (if guess is TRUE,
 #  else only DateTimeOriginal is used)
 def guess_date(file, metadata, guess):
+    file_str_path = str(file.resolve())
 
-    # Method 1: EXIF Field DateTimeOriginal
-    result = str_to_date(metadata.get_tag(EXIF_DATE1_FIELD, file))
+    try:
+        # Method 1: EXIF Field DateTimeOriginal
+        result = str_to_date(metadata.get_tag(EXIF_DATE1_FIELD, file_str_path))
 
-    # Method 2: Field DateTime
-    if result is None and guess:
-        result = str_to_date(metadata.get_tag(EXIF_DATE2_FIELD, file))
+        # Method 2: Field DateTime
+        if result is None and guess:
+            result = str_to_date(metadata.get_tag(EXIF_DATE2_FIELD, file_str_path))
 
-    # Method 3: Field FileModifiedDate
-    if result is None and guess:
-        result = str_to_date(metadata.get_tag(EXIF_DATE3_FIELD, file))
+        # Method 3: Field FileModifiedDate
+        if result is None and guess:
+            result = str_to_date(metadata.get_tag(EXIF_DATE3_FIELD, file_str_path))
+    except:
+        result = None
 
     # Method 5: DateFinder. Try to discover from filename patterns
-    print("Arquivo: ", file, " Data Encontrada: ", dateutil.parser.parse(file))
+    # print("Arquivo: {0} - Data Encontrada: {1}".format(file_str_path, dateutil.parser.parse(file_str_path)))
     # search = datefinder.find_dates(file)
     # if search is not None:
     #    for date_result in search:
@@ -57,7 +59,7 @@ def guess_date(file, metadata, guess):
     # Method 4: SO File Date and Time Created
     if result is None:
         if guess:
-            return datetime.datetime.fromtimestamp(os.stat(file).st_ctime)
+            return datetime.datetime.fromtimestamp(file.stat().st_ctime)
         else:
             return None
 
@@ -65,46 +67,49 @@ def guess_date(file, metadata, guess):
 
 
 # -------------------------------------------------------------------------------------------
-
-
 def run(source, output_dir, guess):
-    for dir_entry in source:
-        if os.path.isdir(dir_entry):  # item in list is directory
-            dir_entry = os.path.join(dir_entry, "*")
+    for source_entry in source:
+        source_path = pathlib.Path(source_entry)
 
-        file_list = glob.glob(dir_entry)  # generate a list of the source
-        file_list.sort()  # lets just sort the list
+        if source_path.is_dir():  # item in list is directory
 
-        for original_photo in file_list:
+            for original_photo in source_path.iterdir():
 
-            # get Metadata from file
-            with exiftool.ExifTool() as metadata_tool:
-                date_of_photo = guess_date(original_photo, metadata_tool, guess)
+                # get Metadata from file
+                with exiftool.ExifTool() as metadata_tool:
+                    date_of_photo = guess_date(original_photo, metadata_tool, guess)
 
-            if date_of_photo is not None:  # lets guess the date
-                photo_year = date_of_photo.year  # separate year
-                photo_month = date_of_photo.month  # separate month
-                photo_day = date_of_photo.day  # separate day
+                if date_of_photo is not None:  # lets guess the date
+                    photo_year = date_of_photo.year  # separate year
+                    photo_month = date_of_photo.month  # separate month
+                    photo_day = date_of_photo.day  # separate day
 
-                # lets create directory struct as ordered
-                final_path = os.path.join(output_dir, str(photo_year))
-                if args.day or args.month:  # create full structure
-                    final_path = os.path.join(final_path, str(photo_month))
-                if args.day:
-                    final_path = os.path.join(final_path, str(photo_day))
+                    # lets create directory struct as ordered
+                    final_path = pathlib.Path(output_dir) / str(photo_year)
+                    if args.day or args.month:  # create full structure
+                        final_path = final_path / str(photo_month)
+                    if args.day:
+                        final_path = final_path / str(photo_day)
 
-                photo_basename = os.path.basename(original_photo)
-                destination_file = os.path.join(final_path, photo_basename)  # this is the final pathname
-                # create Path
-                # print(CGREEN, "Moving : ", CEND, photo_basename, " -> ", destination_file)
-                os.makedirs(os.path.dirname(destination_file), exist_ok=True)  # Directory does nor exist, create
-                shutil.move(original_photo, destination_file)
-            else:
-                # print('File: "', original_photo, '" does not have Date/Time information. ', CRED, '(IGNORED)', CEND)
-                continue
+                    photo_basename = original_photo.name
+                    destination_file = final_path / photo_basename
+
+                    # create Path
+                    print(CGREEN, "{0}Moving :{1} {2} -> {3}".format(CGREEN, CEND, photo_basename, destination_file))
+
+                    # os.makedirs(os.path.dirname(destination_file), exist_ok=True)  # Directory does nor exist, create
+                    final_path.mkdir(exist_ok=True, parents=True)
+                    shutil.move(original_photo, destination_file)
+                else:
+                    print(
+                        'File: {0} " does not have Date/Time information. {1}(IGNORED){2}'.format(original_photo, CRED,
+                                                                                                  CEND))
+                    continue
+        else:
+            print("Source {0} is not a directory.".format(source_path))
 
 
-# Usage: ./organize_by_date.py [options] <source> <output_dir>
+# Usage: ./organize_by_date.py [options] -s <source> [-o output_dir]
 if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('-m', '--month', action='store_true', default=False,
@@ -113,7 +118,7 @@ if __name__ == '__main__':
     parser.add_argument('-g', '--guess', action='store_true', default=False, help='Activate guessing mode.')
 
     parser.add_argument('-s', '--source', nargs='+',
-                        help='Source files pattern or dir of the photos that will be processed')
+                        help='Source dir of the photos that will be processed')
     parser.add_argument('-o', '--output_dir', nargs='?', default='./',
                         help='Destination dir of the photos (will use current directory, if omitted)')
     args = parser.parse_args()

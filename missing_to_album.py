@@ -4,7 +4,7 @@
 #  to a Album that already exists in Photos.app
 
 
-def move(lib_dir, album_name, uuid_list):
+def move_file(lib_dir, album_name, uuid_list):
     # Connect to DB
     db_path = os.path.join(lib_dir, 'database')
     main_db_path = os.path.join(db_path, 'photos.db')
@@ -40,4 +40,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     print("Moving Photos of Library: ", args.library_dir)
-    move(args.library_dir, args.album, args.uuid_list)
+    move_file(args.library_dir, args.album, args.uuid_list)
