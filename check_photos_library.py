@@ -10,8 +10,7 @@
 #
 #   The Progress bar indicates number of rows processed.
 
-import ntpath
-import os
+import pathlib
 import sqlite3
 import sys
 from argparse import ArgumentParser
@@ -30,8 +29,8 @@ def vprint(verbose, message):
 
 #  Main Function
 def check(verbose, exclude_versions, lib_dir, output_file):
-    db_path = os.path.join(lib_dir, 'database')
-    photos_db_path = os.path.join(db_path, 'photos.db')
+    lib_path = pathlib.Path(lib_dir)
+    photos_db_path = lib_path / 'database' / 'photos.db'
 
     try:
         photos_db = sqlite3.connect(photos_db_path)
@@ -64,9 +63,9 @@ def check(verbose, exclude_versions, lib_dir, output_file):
             master_uuid = version_item['masterUuid']
 
             try:
-                query = 'SELECT imagePath FROM RKMaster WHERE uuid="' +  master_uuid +'"'
+                query = 'SELECT imagePath FROM RKMaster WHERE uuid="' + master_uuid + '"'
                 master_cursor.execute(query)
-                imagePath = master_cursor.fetchone()[0]
+                imagePath = pathlib.Path(master_cursor.fetchone()[0])
 
             except sqlite3.Error as erro:
                 print("Problem on Master Select: ", photos_db_path)
@@ -74,15 +73,14 @@ def check(verbose, exclude_versions, lib_dir, output_file):
                 sys.exit(1)
 
             # get path from master
-            full_path = os.path.join(lib_dir, 'Masters', imagePath)
+            full_path = lib_path / 'Masters' / imagePath
 
             # Check if Master Version of the file exists.
-            if not os.path.exists(full_path):
-                vprint(verbose, "Image " + ntpath.normpath(imagePath) + CRED + " NOK " + CEND)
-                # print("Master :\t UUID=", uuid, "\tArquivo: ", path, file=log_file)
-                print(version_uuid + "," + master_uuid + "," + imagePath, file=output)
+            if full_path.exists():
+                vprint(verbose, "Image {0}{1} NOK {2}".format(imagePath.resolve(strict=False), CRED, CEND))
+                print("{0},{1},{2}".format(version_uuid, master_uuid, imagePath.resolve(strict=False)), file=output)
             else:
-                vprint(verbose, "Image " + ntpath.normpath(imagePath) + CGREEN + " OK " + CEND)
+                vprint(verbose, "Image {0}{1} OK {2}".format(imagePath.resolve(strict=False), CGREEN, CEND))
 
         photos_db.close()
 
