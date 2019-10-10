@@ -1,8 +1,7 @@
 #! /usr/bin/env python3
-
 import datetime
 import pathlib
-import shutil
+import sys
 from argparse import ArgumentParser
 
 import exiftool
@@ -27,6 +26,58 @@ def str_to_date(date_string):
         result = None
 
     return result
+
+
+# -------------------------------------------------------------------------------------------
+# Generates a String of the Year as passed by the user
+def gen_year_dir(year, pattern):
+    try:
+        year_dir = pattern.replace("%Y", "{}")
+        return year_dir.format(year)
+    except:
+        return pattern
+
+
+# -------------------------------------------------------------------------------------------
+#  Process one directory
+def process_directory(directory, output, recursive, guess):
+    dir_path = pathlib.Path(directory)
+    output_path = pathlib.Path(output)
+
+    if dir_path.is_dir():  # Must be a dir passed.
+        for file_in_dir in dir_path.iterdir():
+            if file_in_dir.is_dir() and recursive:  # item in list is directory, RECURSIVE ?
+                print(f'Dir Found: {file_in_dir}. Recursive True, Processing ')
+                process_directory(file_in_dir, output, recursive, guess)
+            elif file_in_dir.is_file():  # Process file
+                with exiftool.ExifTool() as metadata_tool:
+                    date_of_photo = guess_date(file_in_dir, metadata_tool, guess)
+
+                    if date_of_photo is not None:  # lets guess the date
+                        photo_year = date_of_photo.year  # separate year
+                        photo_month = date_of_photo.month  # separate month
+                        photo_day = date_of_photo.day  # separate day
+
+                        final_path = output_path / gen_year_dir(str(photo_year), args.yp)
+                        if args.day or args.month:  # create full structure
+                            final_path = final_path / str(photo_month)
+                        if args.day:
+                            final_path = final_path / str(photo_day)
+
+                        photo_basename = file_in_dir.name
+                        destination_file = final_path / photo_basename
+
+                        # create Path
+                        print(CGREEN,
+                              "{0}Moving :{1} {2} -> {3}".format(CGREEN, CEND, photo_basename, destination_file))
+
+                        final_path.mkdir(exist_ok=True, parents=True)
+                        file_in_dir.replace(destination_file)
+                    else:
+                        print(
+                            'File: {0} " does not have Date/Time information. {1}(IGNORED){2}'.format(file_in_dir,
+                                                                                                      CRED,
+                                                                                                      CEND))
 
 
 # -------------------------------------------------------------------------------------------
@@ -67,63 +118,33 @@ def guess_date(file, metadata, guess):
 
 
 # -------------------------------------------------------------------------------------------
-def run(source, output_dir, guess):
-    for source_entry in source:
-        source_path = pathlib.Path(source_entry)
+def run(source, output_dir, recursive, guess):
+    source_path = pathlib.Path(source)
+    output_path = pathlib.Path(output_dir)
 
-        if source_path.is_dir():  # item in list is directory
-
-            for original_photo in source_path.iterdir():
-
-                # get Metadata from file
-                with exiftool.ExifTool() as metadata_tool:
-                    date_of_photo = guess_date(original_photo, metadata_tool, guess)
-
-                if date_of_photo is not None:  # lets guess the date
-                    photo_year = date_of_photo.year  # separate year
-                    photo_month = date_of_photo.month  # separate month
-                    photo_day = date_of_photo.day  # separate day
-
-                    # lets create directory struct as ordered
-                    final_path = pathlib.Path(output_dir) / str(photo_year)
-                    if args.day or args.month:  # create full structure
-                        final_path = final_path / str(photo_month)
-                    if args.day:
-                        final_path = final_path / str(photo_day)
-
-                    photo_basename = original_photo.name
-                    destination_file = final_path / photo_basename
-
-                    # create Path
-                    print(CGREEN, "{0}Moving :{1} {2} -> {3}".format(CGREEN, CEND, photo_basename, destination_file))
-
-                    # os.makedirs(os.path.dirname(destination_file), exist_ok=True)  # Directory does nor exist, create
-                    final_path.mkdir(exist_ok=True, parents=True)
-                    shutil.move(original_photo, destination_file)
-                else:
-                    print(
-                        'File: {0} " does not have Date/Time information. {1}(IGNORED){2}'.format(original_photo, CRED,
-                                                                                                  CEND))
-                    continue
-        else:
-            print("Source {0} is not a directory.".format(source_path))
+    process_directory(source_path, output_path, recursive, guess)
+    sys.exit(1)
 
 
+# -------------------------------------------------------------------------------------------
 # Usage: ./organize_by_date.py [options] -s <source> [-o output_dir]
 if __name__ == '__main__':
     parser = ArgumentParser()
+
+    parser.add_argument('-yp', nargs='?', default='%Y',
+                        help='Define a Pattern for the name of the year directory (use %Y to place the year. Ex.: %Y Albums)')
     parser.add_argument('-m', '--month', action='store_true', default=False,
                         help='Separate Photos by month, inside year.')
     parser.add_argument('-d', '--day', action='store_true', default=False, help='Separate Photos by day, inside month.')
     parser.add_argument('-g', '--guess', action='store_true', default=False, help='Activate guessing mode.')
-
-    parser.add_argument('-s', '--source', nargs='+',
+    parser.add_argument('-s', '--source',
                         help='Source dir of the photos that will be processed')
     parser.add_argument('-o', '--output_dir', nargs='?', default='./',
                         help='Destination dir of the photos (will use current directory, if omitted)')
+    parser.add_argument('-r', '--recursive', default=False, action='store_true', help='Process directory recursively.')
     args = parser.parse_args()
 
     if args.output_dir is None:
         args.output_dir = './'
 
-    run(args.source, args.output_dir, args.guess)
+    run(args.source, args.output_dir, args.recursive, args.guess)
