@@ -36,8 +36,8 @@ def check(verbose, exclude_versions, lib_dir, output_file):
         photos_db = sqlite3.connect(photos_db_path)
         photos_db.row_factory = sqlite3.Row
     except sqlite3.Error as erro:
-        print("Problem connecting to Database: ", photos_db_path)
-        print(" Error: ", erro)
+        print(f' Problem connecting to Database: {photos_db_path}')
+        print(f' Error: {erro}')
         sys.exit(1)
 
     try:
@@ -51,12 +51,12 @@ def check(verbose, exclude_versions, lib_dir, output_file):
         print(" Error: ", erro)
         sys.exit(1)
 
-    vprint(verbose, "Number of items to check: " + str(number_of_rows) + "\n")
+    vprint(verbose, f'Number of items to check: {str(number_of_rows)}\n')
     bar = progressbar.ProgressBar(maxval=number_of_rows)
 
     # Processing each item of DB VERSION
     with open('%s' % output_file, 'w') as output:  # Open output File
-        print("versionuuid,masterUuid,imagePath", file=output)
+        # print("versionuuid,masterUuid,imagePath", file=output)
 
         for version_item in bar(iter(version_cursor.fetchone, None)):
             version_uuid = version_item['uuid']
@@ -68,8 +68,8 @@ def check(verbose, exclude_versions, lib_dir, output_file):
                 imagePath = pathlib.Path(master_cursor.fetchone()[0])
 
             except sqlite3.Error as erro:
-                print("Problem on Master Select: ", photos_db_path)
-                print(" Error: ", erro)
+                print(f'Problem on Master Select: {photos_db_path}')
+                print(f' Error: {erro}')
                 sys.exit(1)
 
             # get path from master
@@ -77,10 +77,10 @@ def check(verbose, exclude_versions, lib_dir, output_file):
 
             # Check if Master Version of the file exists.
             if full_path.exists():
-                vprint(verbose, "Image {0}{1} NOK {2}".format(imagePath.resolve(strict=False), CRED, CEND))
-                print("{0},{1},{2}".format(version_uuid, master_uuid, imagePath.resolve(strict=False)), file=output)
+                vprint(verbose, f'Image {imagePath.resolve(strict=False)}{CRED} NOK {CEND}')
+                print(f'{version_uuid},{master_uuid},{imagePath.resolve(strict=False)}', file=output)
             else:
-                vprint(verbose, "Image {0}{1} OK {2}".format(imagePath.resolve(strict=False), CGREEN, CEND))
+                vprint(verbose, f'Image {imagePath.resolve(strict=False)}{CGREEN} OK {CEND}')
 
         photos_db.close()
 
@@ -95,5 +95,5 @@ if __name__ == '__main__':
     parser.add_argument('output_file', help='Output file with UUIDs found.')
     args = parser.parse_args()
 
-    print("Checking Library: ", args.library_dir)
+    print(f'Checking Library: {args.library_dir}')
     check(args.verbose, True, args.library_dir, args.output_file)

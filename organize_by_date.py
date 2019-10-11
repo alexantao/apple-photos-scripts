@@ -14,6 +14,7 @@ EXIF_DATE3_FIELD = "ModifyDate"  # Guessing from file date
 # Terminal Color Codes
 CRED = '\033[31m'
 CGREEN = '\033[32m'
+CORANGE = '\033[93m'
 CEND = '\033[0m'
 
 
@@ -67,17 +68,16 @@ def process_directory(directory, output, recursive, guess):
                         photo_basename = file_in_dir.name
                         destination_file = final_path / photo_basename
 
-                        # create Path
-                        print(CGREEN,
-                              "{0}Moving :{1} {2} -> {3}".format(CGREEN, CEND, photo_basename, destination_file))
+                        if destination_file.exists():
+                            print(f'File {destination_file} exists on {final_path}! {CORANGE}IGNORED{CEND}')
+                        else:
+                            # create Path
+                            print(f'{CGREEN}Moving :{CEND} {photo_basename} -> {destination_file}')
 
-                        final_path.mkdir(exist_ok=True, parents=True)
-                        file_in_dir.replace(destination_file)
+                            final_path.mkdir(exist_ok=True, parents=True)
+                            file_in_dir.replace(destination_file)
                     else:
-                        print(
-                            'File: {0} " does not have Date/Time information. {1}(IGNORED){2}'.format(file_in_dir,
-                                                                                                      CRED,
-                                                                                                      CEND))
+                        print(f'File: {file_in_dir} does not have Date/Time information. {CRED}(IGNORED){CEND}')
 
 
 # -------------------------------------------------------------------------------------------

@@ -18,7 +18,7 @@ Requires python 3, may work with python 2 with little changes, but not tested.
 
 USAGE:
  ``` shell
-  $ ./check_photos_library.py directory_of_your_library 
+  $ ./check_photos_library.py directory_of_your_library output_file
 ```
 
 **OPTIONS:**

@@ -70,8 +70,10 @@ def copyback(csv_path, photos_dir, library_dir):
 
             # if not os.path.isdir(missing_photo_libpath):
             if not missing_photo_libpath.is_dir():
-                vprint("{0}WARNING: {1} Path on Library missing for file. Strange...\n\t{2}".format(CORANGE, CEND,
-                                                                                                    missing_photo_libpath))
+                # vprint("{0}WARNING: {1} Path on Library missing for file. Strange...\n\t{2}".format(CORANGE, CEND,
+                #                                                                                   missing_photo_libpath))
+                vprint(
+                    f'{CORANGE}WARNING: {CEND} Path on Library missing for file. Strange...\n\t{missing_photo_libpath}')
                 num_ignored += 1
             else:
                 if missing_photo_source.is_file():  # check if the source exists in photos_dir
@@ -80,7 +82,8 @@ def copyback(csv_path, photos_dir, library_dir):
                     vprint("{0}COPIED:{1} {2]".format(CGREEN, CEND, missing_photo_source))
                     num_restored += 1
                 else:
-                    vprint("{0}NOT FOUND:{1} {2}".format(CRED, CEND, missing_photo_source))
+                    # vprint("{0}NOT FOUND:{1} {2}".format(CRED, CEND, missing_photo_source))
+                    vprint(f'{CRED}NOT FOUND:{CEND} {missing_photo_source}')
                     num_notfound += 1
 
         vprint("--------")
@@ -102,5 +105,5 @@ if __name__ == '__main__':
 
     verbose = args.verbose
 
-    print("Checking Library: ", args.library_dir)
+    print(f'Checking Library: {args.library_dir}')
     copyback(args.csv_file, args.photos_dir, args.library_dir)
