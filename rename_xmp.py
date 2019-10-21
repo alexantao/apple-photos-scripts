@@ -19,11 +19,10 @@ def rename_xmp_file(file):
         # let's find the correspondent XMP of the files
         file_xmpdigikam = file_basepath / (file_filename + XMP_SUFFIX)
 
-        print(f'    Base: {file_basepath}')
-        print(f'    Full: {file_filename}')
-        print(f'    Photo: {file_xmpphoto}')
-        print(f'    Digikam: {file_xmpdigikam}')
-
+        #print(f'    Base: {file_basepath}')
+        #print(f'    Full: {file_filename}')
+        #print(f'    Photo: {file_xmpphoto}')
+        #print(f'    Digikam: {file_xmpdigikam}')
 
         if file_xmpphoto.is_file():
             print(f'Renaming: {file_xmpphoto} -> {file_xmpdigikam}')
